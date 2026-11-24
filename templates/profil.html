@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+{% block title %}Mon profil | Brigi+ Chat{% endblock %}
+{% block content %}
+<section class="profile-section">
+    <div class="container profile-container">
+        <div class="profile-cover"></div>
+        <section class="profile-card">
+            <div class="profile-top">
+                {% if profil.photo %}
+                    <img class="profile-photo" src="{{ profil.photo.url }}" alt="Photo de profil de {{ profil.username }}">
+                {% else %}
+                    <div class="profile-photo profile-placeholder">{{ profil.username|first|upper }}</div>
+                {% endif %}
+                <div class="profile-identity"><span class="eyebrow">PROFIL MEMBRE</span><h1>{{ profil.username }}</h1><p>{{ profil.email }}</p></div>
+                {% if request.user.id == profil.id %}<a class="button button-outline button-small" href="#modifier-profil">Modifier mon profil</a>{% endif %}
+            </div>
+            <div class="profile-bio"><h2>À propos</h2><p>{{ profil.bio|default:"Bienvenue sur mon profil Brigi+ Chat." }}</p></div>
+        </section>
+
+        {% if request.user.id == profil.id %}
+        <section class="edit-profile-card" id="modifier-profil">
+            <h2>Mettre à jour mon profil</h2>
+            <form method="post" action="{% url 'modifier_profil' %}"enctype="multipart/form-data"class="form-stack">
+                {% csrf_token %}
+                {% if form %}
+                    {% for field in form %}
+                    <div class="form-field"><label for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}{% for error in field.errors %}<small class="field-error">{{ error }}</small>{% endfor %}</div>
+                    {% endfor %}
+                {% else %}
+                    <div class="form-field"><label for="photo">Photo de profil (JPG ou PNG)</label><input type="file" id="photo" name="photo" accept="image/jpeg,image/png"></div>
+                    <div class="form-field"><label for="bio">À propos de moi</label><textarea id="bio" name="bio" rows="3">{{ profil.bio }}</textarea></div>
+                {% endif %}
+                <button class="button" type="submit">Enregistrer les modifications</button>
+            </form>
+        </section>
+        {% endif %}
+
+        <div class="page-heading profile-post-heading"><div><span class="eyebrow">MES PARTAGES</span><h2>Publications</h2></div></div>
+        {% for article in publications %}
+        <article class="post-card">
+            <div class="post-head"><div class="avatar">{{ profil.username|first|upper }}</div><div class="post-author"><strong>{{ profil.username }}</strong><small>{{ article.date_creation|date:"d/m/Y à H:i" }}</small></div></div>
+            <div class="post-content">{{ article.contenu|linebreaksbr }}</div>
+            <div class="post-stats"><span>{{ article.likes.count }} j’aime</span><a href="{% url 'detail_article' article.pk %}">{{ article.commentaires.count }} commentaire(s)</a></div>
+        </article>
+        {% empty %}
+        <div class="empty-state"><h2>Aucune publication</h2><p>Les publications de ce profil apparaîtront ici.</p></div>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}

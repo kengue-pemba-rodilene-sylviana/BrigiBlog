@@ -1,0 +1,197 @@
+{% extends 'base.html' %}
+{% block title %}Accueil | Brigi+ Chat{% endblock %}
+
+{% block navigation %}
+<a class="active" href="{% url 'accueil' %}">Accueil</a>
+{% if user.is_authenticated %}
+    <a href="{% url 'feed' %}">Actualités</a>
+    <a href="{% url 'profil' %}">Mon profil</a>
+{% else %}
+    <a href="{% url 'connexion' %}">Connexion</a>
+    <a class="button button-small" href="{% url 'inscription' %}">Créer un compte</a>
+{% endif %}
+{% endblock %}
+
+{% block content %}
+<section class="hero">
+    <div class="container hero-grid">
+        <div class="hero-copy">
+            <span class="eyebrow"><span class="eyebrow-dot"></span> BIENVENUE DANS LA COMMUNAUTÉ</span>
+            <h1>Chaque expérience mérite d’être <em>partagée.</em></h1>
+            <p class="lead">Raconte ton parcours, partage tes idées, célèbre tes réussites et apprends aussi de tes difficultés. Ici, chaque histoire peut inspirer quelqu’un.</p>
+            <div class="hero-actions">
+                {% if user.is_authenticated %}
+                    <a class="button" href="{% url 'feed' %}">Découvrir le fil d’actualité <span>→</span></a>
+                {% else %}
+                    <a class="button" href="{% url 'inscription' %}">Rejoindre la communauté <span>→</span></a>
+                    <a class="button button-outline" href="{% url 'connexion' %}">Se connecter</a>
+                {% endif %}
+            </div>
+            <div class="motto">
+                <span>NOTRE PHILOSOPHIE</span>
+                <strong>« L’échec est aussi une bénédiction »</strong>
+            </div>
+        </div>
+        <div class="hero-art" aria-label="Illustration de la communauté Brigi+ Chat">
+            <div class="art-orbit orbit-one"></div><div class="art-orbit orbit-two"></div>
+            <div class="art-main-card">
+                <div class="art-mark">B<span>+</span></div>
+                <span class="art-kicker">UNE COMMUNAUTÉ QUI GRANDIT</span>
+                <h2>Partage.<br>Apprends.<br><em>Évolue.</em></h2>
+                <p>Ton histoire a de la valeur.</p>
+                <div class="art-stars">✦ &nbsp; ✧ &nbsp; ✦</div>
+            </div>
+            <div class="floating-note note-top">Une idée peut tout changer </div>
+            <div class="floating-note note-bottom">Chaque pas compte.</div>
+        </div>
+    </div>
+</section>
+
+<!-- PUBLICATIONS DE LA COMMUNAUTÉ -->
+<section class="section home-feed-section" id="publications">
+    <div class="container">
+        <div class="section-heading">
+            <span class="eyebrow">LA COMMUNAUTÉ BRIGI+</span>
+            <h2>Les dernières publications</h2>
+            <p>Découvre les expériences, les idées et les histoires partagées par les membres.</p>
+        </div>
+
+        <div class="home-post-list">
+            {% for article in publications %}
+                <article class="home-post-card">
+                    <div class="home-post-header">
+                        {% if article.auteur.photo %}
+                            <img class="home-post-avatar" src="{{ article.auteur.photo.url }}" alt="Photo de {{ article.auteur.username }}">
+                        {% else %}
+                            <div class="home-post-avatar home-post-avatar-placeholder">
+                                {{ article.auteur.username|first|upper }}
+                            </div>
+                        {% endif %}
+
+                        <div class="home-post-author">
+                            <strong>
+                                {% if article.auteur.get_full_name %}
+                                    {{ article.auteur.get_full_name }}
+                                {% else %}
+                                    {{ article.auteur.username }}
+                                {% endif %}
+                            </strong>
+                            <small>{{ article.date_creation|date:"d/m/Y à H:i" }}</small>
+                        </div>
+                    </div>
+
+                    <div class="home-post-content">{{ article.contenu|linebreaksbr }}</div>
+
+                    <div class="home-post-stats">
+                        <span><strong>{{ article.nombre_likes|default:0 }}</strong> J'aime</span>
+                        <span><strong>{{ article.nombre_commentaires|default:0 }}</strong> commentaire(s)</span>
+                    </div>
+
+                    <div class="home-post-actions">
+                        {% if user.is_authenticated %}
+                            <form method="post" action="{% url 'aimer_article' article.id %}">
+                                {% csrf_token %}
+                                <input type="hidden" name="next" value="/">
+                                <button class="home-like-button {% if article.est_aime %}is-liked{% endif %}" type="submit">
+                                    {% if article.est_aime %}♥ Je n'aime plus{% else %}♡ J'aime{% endif %}
+                                </button>
+                            </form>
+                        {% else %}
+                            <a class="home-like-button" href="{% url 'connexion' %}">♡ J'aime</a>
+                        {% endif %}
+                        <a class="home-comment-link" href="{% url 'detail_article' article.id %}">Voir la publication</a>
+                    </div>
+
+                    <div class="home-comments">
+                        <h3>Commentaires</h3>
+
+                        {% for commentaire in article.commentaires_principaux %}
+                            <div class="home-comment">
+                                <div class="home-comment-avatar">
+                                    {{ commentaire.auteur.username|first|upper }}
+                                </div>
+                                <div class="home-comment-body">
+                                    <strong>{{ commentaire.auteur.username }}</strong>
+                                    <p>{{ commentaire.contenu|linebreaksbr }}</p>
+                                    <small>{{ commentaire.date_creation|date:"d/m/Y à H:i" }}</small>
+
+                                    {% for reponse in commentaire.reponses.all %}
+                                        <div class="home-reply">
+                                            <strong>{{ reponse.auteur.username }}</strong>
+                                            <p>{{ reponse.contenu|linebreaksbr }}</p>
+                                            <small>{{ reponse.date_creation|date:"d/m/Y à H:i" }}</small>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        {% empty %}
+                            <p class="home-no-comments">Aucun commentaire pour le moment. Lance la discussion !</p>
+                        {% endfor %}
+
+                        {% if user.is_authenticated %}
+                            <form class="home-comment-form" method="post" action="{% url 'ajouter_commentaire' article.id %}">
+                                {% csrf_token %}
+                                <textarea name="contenu" rows="2" placeholder="Écrire un commentaire..." required></textarea>
+                                <input type="hidden" name="next" value="/">
+                                <button class="button button-small" type="submit">Commenter</button>
+                            </form>
+                        {% else %}
+                            <p class="home-login-prompt">
+                                <a href="{% url 'connexion' %}">Connecte-toi</a> pour écrire un commentaire.
+                            </p>
+                        {% endif %}
+                    </div>
+                </article>
+            {% empty %}
+                <div class="home-empty-posts">
+                    <h3>Aucune publication pour le moment</h3>
+                    <p>Les nouvelles publications de la communauté apparaîtront ici.</p>
+                    {% if user.is_authenticated %}
+                        <a class="button" href="{% url 'feed' %}">Publier maintenant</a>
+                    {% else %}
+                        <a class="button" href="{% url 'inscription' %}">Rejoindre la communauté</a>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+
+        {% if is_paginated %}
+            <nav class="home-pagination" aria-label="Pagination des publications">
+                {% if page_obj.has_previous %}
+                    <a href="?page={{ page_obj.previous_page_number }}#publications">← Précédent</a>
+                {% endif %}
+                <span>Page {{ page_obj.number }} sur {{ page_obj.paginator.num_pages }}</span>
+                {% if page_obj.has_next %}
+                    <a href="?page={{ page_obj.next_page_number }}#publications">Suivant →</a>
+                {% endif %}
+            </nav>
+        {% endif %}
+    </div>
+</section>
+
+<section class="section features-section">
+    <div class="container">
+        <div class="section-heading">
+            <span class="eyebrow">BRIGI+ CHAT</span>
+            <h2>Un espace pour avancer ensemble</h2>
+            <p>Exprime-toi librement et découvre les expériences de la communauté.</p>
+        </div>
+        <div class="feature-grid">
+            <article class="feature-card"><div class="feature-icon"></div><h3>Partage tes expériences</h3><p>Publie tes idées, tes projets, tes réussites et les leçons que tu as apprises.</p></article>
+            <article class="feature-card"><div class="feature-icon"></div><h3>Encourage les autres</h3><p>Aime les publications qui te parlent et montre aux autres que leur voix compte.</p></article>
+            <article class="feature-card"><div class="feature-icon"></div><h3>Échange avec tous</h3><p>Commente, réponds et participe à des discussions constructives.</p></article>
+        </div>
+    </div>
+</section>
+
+<section class="join-banner">
+    <div class="container join-inner">
+        <div><span class="eyebrow eyebrow-light">À TON TOUR</span><h2>Ton histoire mérite d’être entendue.</h2><p>Rejoins Brigi+ Chat et grandissons grâce à nos expériences.</p></div>
+        {% if user.is_authenticated %}
+            <a class="button button-light" href="{% url 'feed' %}">Voir les publications →</a>
+        {% else %}
+            <a class="button button-light" href="{% url 'inscription' %}">Commencer maintenant →</a>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

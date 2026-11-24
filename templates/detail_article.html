@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% block title %}Publication | Brigi+ Chat{% endblock %}
+{% block content %}
+<section class="feed-section">
+    <div class="container detail-container">
+        <a class="back-link" href="{% url 'feed' %}">← Retour au fil d’actualité</a>
+        <article class="post-card post-detail">
+            <div class="post-head">
+                <div class="avatar">{{ article.auteur.username|first|upper }}</div>
+                <div class="post-author"><strong>{{ article.auteur.username }}</strong><small>{{ article.date_creation|date:"d/m/Y à H:i" }}</small></div>
+            </div>
+            <div class="post-content">{{ article.contenu|linebreaks }}</div>
+            <div class="post-stats"><span>{{ article.likes.count }} j’aime</span><span>{{ commentaires.count }} commentaire(s)</span></div>
+            <div class="post-actions">
+                <form method="post" action="{% url 'aimer_article' article.pk %}">{% csrf_token %}<button type="submit" class="post-action">♡ J’aime</button></form>
+            </div>
+        </article>
+
+        <section class="comments-panel">
+            <h2>Commentaires <span class="count-pill">{{ commentaires.count }}</span></h2>
+            <form method="post" action="{% url 'ajouter_commentaire' article.pk %}" class="comment-form">
+                {% csrf_token %}
+                <textarea name="contenu" rows="3" placeholder="Écris un commentaire..." required></textarea>
+                <button class="button button-small" type="submit">Envoyer</button>
+            </form>
+            {% for commentaire in commentaires %}
+            {% if not commentaire.parent %}
+            <article class="comment">
+                <div class="avatar avatar-small">{{ commentaire.auteur.username|first|upper }}</div>
+                <div class="comment-body">
+                    <div class="comment-bubble"><strong>{{ commentaire.auteur.username }}</strong><p>{{ commentaire.contenu|linebreaksbr }}</p></div>
+                    <small>{{ commentaire.date_creation|date:"d/m/Y à H:i" }}</small>
+                    {% for reponse in commentaire.reponses.all %}
+                    <div class="reply">
+                        <div class="avatar avatar-small">{{ reponse.auteur.username|first|upper }}</div>
+                        <div><div class="comment-bubble"><strong>{{ reponse.auteur.username }}</strong><p>{{ reponse.contenu|linebreaksbr }}</p></div><small>{{ reponse.date_creation|date:"d/m/Y à H:i" }}</small></div>
+                    </div>
+                    {% endfor %}
+                    <form method="post" action="{% url 'repondre_commentaire' commentaire.pk %}" class="reply-form">
+                        {% csrf_token %}<input name="contenu" placeholder="Répondre à ce commentaire..." required><button type="submit">Répondre</button>
+                    </form>
+                </div>
+            </article>
+            {% endif %}
+            {% empty %}
+            <p class="muted">Aucun commentaire pour le moment. Lance la conversation !</p>
+            {% endfor %}
+        </section>
+    </div>
+</section>
+{% endblock %}

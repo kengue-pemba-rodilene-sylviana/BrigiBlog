@@ -1,0 +1,79 @@
+
+{% extends 'base.html' %}
+
+{% block title %}Inscription | Brigi+ Chat{% endblock %}
+
+{% block content %}
+
+<section class="auth-section">
+    <div class="auth-card">
+
+        <a class="brand auth-brand" href="{% url 'accueil' %}">
+            Brigi<span>+</span> Chat
+        </a>
+
+        <span class="eyebrow">BIENVENUE DANS NOTRE COMMUNAUTÉ</span>
+
+        <h1>Créer un compte</h1>
+
+        <p class="auth-intro">
+            Rejoins Brigi+ Chat et partage tes expériences,
+            tes idées et tes connaissances avec les autres membres.
+        </p>
+
+        {% if form.non_field_errors %}
+            <div class="alert alert-error">
+                {% for error in form.non_field_errors %}
+                    <p>{{ error }}</p>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <form method="post" class="form-stack" enctype="multipart/form-data">
+
+            {% csrf_token %}
+
+            {% for field in form %}
+                <div class="form-field">
+
+                    <label for="{{ field.id_for_label }}">
+                        {{ field.label }}
+                    </label>
+
+                    {{ field }}
+
+                    {% if field.help_text %}
+                        <small class="field-help">
+                            {{ field.help_text|safe }}
+                        </small>
+                    {% endif %}
+
+                    {% for error in field.errors %}
+                        <small class="field-error">
+                            {{ error }}
+                        </small>
+                    {% endfor %}
+
+                </div>
+            {% endfor %}
+
+            <button class="button button-full" type="submit">
+                Créer mon compte
+            </button>
+
+        </form>
+
+        <p class="auth-switch">
+            Tu possèdes déjà un compte ?
+            <a href="{% url 'connexion' %}">Connecte-toi ici</a>
+        </p>
+
+        <p class="terms-note">
+            En créant ton compte, tu acceptes de respecter les autres
+            membres et les règles de la communauté Brigi+ Chat.
+        </p>
+
+    </div>
+</section>
+
+{% endblock %}

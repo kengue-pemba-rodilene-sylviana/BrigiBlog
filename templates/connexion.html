@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% block title %}Connexion | Brigi+ Chat{% endblock %}
+{% block content %}
+<section class="auth-section">
+    <div class="auth-card">
+        <a class="brand auth-brand" href="{% url 'accueil' %}">Brigi<span>+</span> Chat</a>
+        <span class="eyebrow">HEUREUX DE TE REVOIR</span>
+        <h1>Connecte-toi</h1>
+        <p class="auth-intro">Retrouve la communauté et poursuis les échanges.</p>
+        {% if form.errors %}<div class="alert alert-error">Nom d’utilisateur ou mot de passe incorrect. Vérifie tes identifiants.</div>{% endif %}
+        {% if next %}<div class="alert alert-info">Connecte-toi pour accéder à cette page.</div>{% endif %}
+        <form method="post" class="form-stack">
+            {% csrf_token %}
+            {% if form %}
+                {% for field in form %}
+                    <div class="form-field">
+                        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                        {{ field }}
+                        {% for error in field.errors %}<small class="field-error">{{ error }}</small>{% endfor %}
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="form-field"><label for="username">Nom d’utilisateur</label><input id="username" name="username" autocomplete="username" required></div>
+                <div class="form-field"><label for="password">Mot de passe</label><input id="password" name="password" type="password" autocomplete="current-password" required></div>
+            {% endif %}
+            <input type="hidden" name="next" value="{{ next }}">
+            <button class="button button-full" type="submit">Se connecter <span>→</span></button>
+        </form>
+        <p class="auth-switch">Pas encore de compte ? <a href="{% url 'inscription' %}">Inscris-toi</a></p>
+    </div>
+</section>
+{% endblock %}
